@@ -1,21 +1,21 @@
 import OpenAI from "openai"
 import { checkEnvironment } from "./utils.js"
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_KEY,
-  baseURL: process.env.AI_URL,
-  dangerouslyAllowBrowser: true
-})
-
 checkEnvironment();
 
-const prompt = "Suggest some gifts for someone who loves hiphop music";
+const aiClient = new OpenAI({
+    apiKey: process.env.AI_KEY,
+    baseURL: process.env.AI_URL,
+    dangerouslyAllowBrowser: true,
+  })
+
+const prompt = "Suggest some gifts for someone who loves hiphop music.";
 
 console.log("Prompt:", prompt);
 console.log("Making AI request...");
 
 try {
-  const response = await openai.chat.completions.create({
+  const response = await aiClient.chat.completions.create({
     model: process.env.AI_MODEL,
     messages: [
       {
@@ -23,6 +23,10 @@ try {
         content: prompt,
       },
     ],
+    // gpt-5-nano spends tokens on internal reasoning first; a small budget can leave
+    // message.content empty. Lower effort + a higher cap leaves room for the actual reply.
+    reasoning_effort: "minimal",
+    max_completion_tokens: 256,
   });
 
   console.log("AI response:");
