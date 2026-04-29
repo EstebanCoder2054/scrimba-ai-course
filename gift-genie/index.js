@@ -31,14 +31,74 @@ function start() {
 }
 
 // Initialize messages array with system prompt
+// the system prompt is the initial context for the AI
+// it can react to contextual clues in the user's input
+
+// Initialize messages array with system prompt
 const messages = [
   {
     role: "system",
     content: `You are the Gift Genie!
     Make your gift suggestions thoughtful and practical.
-    Your response must be under 100 words. 
+    The user will describe the gift's recipient. 
+    Your response must be in structured Markdown.
+    Each gift must: 
+      - Have a clear heading
+      - A short explanation of why it would work
+
+    If the user mentions a location or a time constraint,
+    add another section under each gift that gives the user 
+    a step by step guide on where and how they can get the gift.
+
     Skip intros and conclusions. 
-    Only output gift suggestions.`,
+    Only output gift suggestions.
+    
+    End with a section with an H2 heading titled "Questions for you" 
+    that contains follow-ups that would help improve the 
+    gift suggestions`,
+  },
+  // -------------------------------------------------------------
+  // Here starts the shot prompting technique, giving it an example or a patter so the model can learn from it and the response will be more consistent and accurate.
+  // -------------------------------------------------------------
+  {
+    role: "user",
+    content:
+      "dubai airport. last minute gifts for niece (arts & crafts) and nephew who loves football",
+  },
+  {
+    role: "assistant",
+    content: `
+### Travel Art Kit for Niece (Compact & Portable)
+
+A small, kid-friendly arts & crafts item that's easy to pack and perfect for a quick creative distraction during travel.
+
+**How to get it:**
+1. Head to Dubai International Airport (DXB) and proceed to Terminal 3 Departures.
+2. Visit Dubai Duty Free or a nearby WHSmith that carries kids’ stationery.
+3. Ask for compact arts & crafts kits or a coloring book with pencils.
+4. Choose a lightweight option suitable for carry-on.
+5. Request gift wrapping if available.
+
+---
+
+### Mini Football Keychain for Nephew
+
+A light, inexpensive football-themed souvenir that’s easy to carry and perfect for an airport purchase.
+
+**How to get it:**
+1. Visit Dubai Duty Free or a souvenir shop near the gates.
+2. Ask for football-themed keychains or small sports souvenirs.
+3. Check toy or sports sections if needed.
+4. Purchase and pack securely.
+
+---
+
+## Questions for you
+1. What are the ages of your niece and nephew?
+2. Do you have a budget per gift?
+3. Are you departing from Terminal 3?
+4. Does your nephew support a specific team?
+`,
   },
 ];
 
@@ -82,7 +142,6 @@ async function handleGiftRequest(e) {
       // Display the sanitized HTML
       outputContent.innerHTML = sanitizedHTML;
     }
-
 
     // Streaming magic ends here --------------------------------------------
 
