@@ -1,8 +1,15 @@
+import "dotenv/config";
 import express from "express";
 import OpenAI from "openai";
 
 const app = express();
 app.use(express.json());
+
+// Quick check that this process is running: open http://localhost:3001/api/health in the browser
+// (or curl it) while Gift Genie dev is up.
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, service: "gift-genie-api" });
+});
 
 // Initialize an OpenAI client for your provider using env vars
 const openai = new OpenAI({
@@ -35,27 +42,39 @@ with clarifying questions that would help improve the recommendations.`,
   },
 ];
 
-// Challenge: See challenge.md for instructions
 app.post("/api/gift", async (req, res) => {
   try {
-    // Step 1 — extract userPrompt from req.body and add to messages
-    const userPrompt = req.body.userPrompt;
-    // Step 2 — send chat completions request
+    const userPrompt = req.body?.userPrompt;
+    if (!userPrompt || typeof userPrompt !== "string") {
+      return res.status(400).json({ error: "Missing or invalid userPrompt" });
+    }
+
     const response = await openai.chat.completions.create({
       model: process.env.AI_MODEL,
       messages: [...messages, { role: "user", content: userPrompt }],
-      tools: [{ type: "web_search" }],
+      reasoning_effort: "minimal",
+      max_completion_tokens: 2048,
     });
-    // Step 3 — extract content and send back as JSON
-    const content = response.choices[0].message.content;
+
+    const choice = response.choices[0];
+    const content = choice?.message?.content ?? "";
+    if (!content) {
+      console.warn(
+        "[gift] Empty assistant text. finish_reason=%s choice=%s",
+        choice?.finish_reason,
+        JSON.stringify(choice?.message),
+      );
+    }
     res.status(200).json({ content });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      error: error.message || "Internal server error",
+    });
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT ?? 3001;
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Gift Genie API listening at http://localhost:${PORT}`);
 });

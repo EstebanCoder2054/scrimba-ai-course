@@ -28,7 +28,7 @@ function start() {
   // Setup UI event listeners
   userInput.addEventListener("input", () => autoResizeTextarea(userInput));
   giftForm.addEventListener("submit", handleGiftRequestServerSide);
-  giftForm.addEventListener("submit", handleGiftRequestClientSide);
+  // giftForm.addEventListener("submit", handleGiftRequestClientSide);
 }
 
 // Initialize messages array with system prompt
@@ -213,12 +213,16 @@ async function handleGiftRequestServerSide(e) {
       body: JSON.stringify({ userPrompt }),
     });
 
-    // Step 2 — parse response and extract giftSuggestions
-    const giftSuggestions = await response.json();
-    console.log(giftSuggestions);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || `Request failed (${response.status})`);
+    }
+
+    const markdown = data.content ?? "";
+    console.log(data);
 
     // Convert Markdown to HTML
-    const html = marked.parse(giftSuggestions);
+    const html = marked.parse(markdown);
 
     // Sanitize the HTML to prevent XSS attacks
     const safeHTML = DOMPurify.sanitize(html);
