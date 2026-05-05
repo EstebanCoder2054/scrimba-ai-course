@@ -5,17 +5,21 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "dev:gift-genie": "vite gift-genie --config vite.config.js",
+    "dev:gift-genie": "vite gift-genie --config gift-genie/vite.config.js",
+    "server:gift-genie": "node gift-genie/server.js",
+    "gift-genie": "concurrently -n api,vite -c magenta,cyan \"npm run server:gift-genie\" \"npm run dev:gift-genie\"",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "dompurify": "^3.3.1",
     "dotenv": "^17.2.3",
-    "openai": "^6.15.0",
+    "express": "^5.2.1",
     "marked": "^17.0.1",
-    "dompurify": "^3.3.1"
+    "openai": "^6.15.0"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "vite": "^7.3.0"
   }
 }
